@@ -55,8 +55,15 @@ The GC threshold should be 35 for more astringency.
     Bird: 41 %  
     Parasite: 19-42%  
 
-Average
+Average for  the whole genome before filtering
 ```bash
-awk '!/^>/{gc+=gsub(/[gGcC]/,""); at+=gsub(/[aAtT]/,"");} END{ printf "%.2f%%\n", (gc*100)/(gc+at) }' Data/Genomes/Haemo* 
+awk '!/^>/{gc+=gsub(/[gGcC]/,""); at+=gsub(/[aAtT]/,"");} \
+  END{ printf "%.2f%%\n", (gc*100)/(gc+at) }' Data/Genomes/Haem*
 ```
-27.40% GC
+27.40% GC  
+
+After the filtering
+```bash
+mkdir Results Results/01_clean
+python3 removeScaffolds.py Haemoproteus_tartakovskyi.raw.genome 35 Ht.genome 3000
+```
