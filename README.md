@@ -31,6 +31,8 @@ gunzip Data/Genomes/Haemoproteus_tartakovskyi.raw.genome.gz
 ```bash
 mkdir Scripts
 scp /resources/binp29/Data/malaria/*.py Scripts
+scp /home2/resources/binp28/Data/gffParse.pl Scripts
+chmod +x Scripts/gffParse.pl
 ```
 
 #### Gene prediction
@@ -60,10 +62,46 @@ Average for  the whole genome before filtering
 awk '!/^>/{gc+=gsub(/[gGcC]/,""); at+=gsub(/[aAtT]/,"");} \
   END{ printf "%.2f%%\n", (gc*100)/(gc+at) }' Data/Genomes/Haem*
 ```
-27.40% GC  
+27.40% GC
+
+Filtering using the provided script.
+```bash
+mkdir Results Results/01_clean
+python3 Scripts/removeScaffold.py \
+  Data/Genomes/Haemoproteus_tartakovskyi.raw.genome \  # input assembly
+  35 \  # GC threshold
+  Results/01_clean/Ht.genome \  # output fltered file 
+  3000  # minimum scaffold length
+```
+
 
 After the filtering
 ```bash
-mkdir Results Results/01_clean
-python3 removeScaffolds.py Haemoproteus_tartakovskyi.raw.genome 35 Ht.genome 3000
+awk '!/^>/{gc+=gsub(/[gGcC]/,""); at+=gsub(/[aAtT]/,"");} \
+  END{ printf "%.2f%%\n", (gc*100)/(gc+at) }' Results/01_clean/Ht.genome
+```
+25.92% GC
+
+### Make a gene prediction
+Firstly, GeneMark runs the GeneMark-ES self-training algorithm and predicts the genes.
+```bash
+mkdir Results/02_gmes Results/02_gmes/HT_genome_1st_run
+nohup gmes_petap.pl \
+ --ES \  # run gene self-training algorithm
+ --sequence Results/01_clean/Ht.genome \  # genome
+ --cores 4 \  # cores to run
+ --work_dir Results/02_gmes/HT_genome_1st_run \  # output folder
+ --min_contig 3000 & # same as the previous threshold
+```
+
+To convert the gtf files to gff, gffParse.pl is used
+```bash
+mkdir Results/03_gffParse
+gffParse.pl \
+ -i Results/01_clean/Ht.genome \  # input fasta
+ -g Results/02_gmes/HT_genome_1st_run \  # input annotation file
+ -b HT \  # basename for files
+ -d Results/03_gffParse \  # output directory
+ -p \  # also input amino acid files
+ -c  #  adjusts genes if by changing readframe, STOP codons disappear
 ```
