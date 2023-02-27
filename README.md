@@ -3,7 +3,7 @@ Author: Joan Escriva Font
 
 # conda
 ```bash
-conda create -n malaria fastqc=
+conda create -n malaria 
 ```
 # git-lfs
 git lfs track *.genome *.gff *.gtf
@@ -17,6 +17,8 @@ mkdir Data Data/Genomes
 scp /home2/resources/binp29/Data/malaria/plasmodiumGenomes.tgz Data/Genomes/
 tar zxvf Data/Genomes/plasmodiumGenomes.tgz -C Data/Genomes/
 rm Data/Genomes/plasmodiumGenomes.tgz # remove the file
+scp /home2/resources/binp29/Data/malaria/Haemoproteus_tartakovskyi.raw.genome.gz Data/Genomes/
+gunzip Data/Genomes/Haemoproteus_tartakovskyi.raw.genome.gz
 ```
     Plasmodium_berghei.genome
     Plasmodium_cynomolgi.genome
@@ -25,6 +27,11 @@ rm Data/Genomes/plasmodiumGenomes.tgz # remove the file
     Plasmodium_vivax.genome
     Plasmodium_yoelii.genome
     Toxoplasma_gondii.genome
+### Add scripts
+```bash
+mkdir Scripts
+scp /resources/binp29/Data/malaria/*.py Scripts
+```
 
 #### Gene prediction
 Other students ran it for us.
@@ -37,7 +44,7 @@ I copy them from the shared folder.
 mkdir Data/Predictions
 scp /home2/resources/binp29/Data/malaria/Tg.gff.gz Data/Predictions
 gunzip Data/Predictions/Tg.gff.gz
-scp /tmp/Prediction/*.gtf /Data/Predictions
+scp /tmp/Prediction/*.gtf Data/Predictions
 ```
 
 
@@ -48,3 +55,8 @@ The GC threshold should be 35 for more astringency.
     Bird: 41 %  
     Parasite: 19-42%  
 
+Average
+```bash
+awk '!/^>/{gc+=gsub(/[gGcC]/,""); at+=gsub(/[aAtT]/,"");} END{ printf "%.2f%%\n", (gc*100)/(gc+at) }' Data/Genomes/Haemo* 
+```
+27.40% GC
