@@ -34,6 +34,13 @@ scp /resources/binp29/Data/malaria/*.py Scripts
 scp /home2/resources/binp28/Data/gffParse.pl Scripts
 chmod +x Scripts/gffParse.pl
 ```
+### Adding tax data
+```bash
+mkdir Data/tax_data
+scp /home2/resources/binp29/Data/malaria/taxonomy.dat Data/tax_data
+
+```
+
 
 #### Gene prediction
 Other students ran it for us.
@@ -74,6 +81,10 @@ python3 Scripts/removeScaffold.py \
   3000  # minimum scaffold length
 ```
 
+To check the number of scaffolds in the clean file
+```bash
+cat Results/01_clean/Ht.genome | grep -c \>
+```
 
 After the filtering
 ```bash
@@ -93,15 +104,35 @@ nohup gmes_petap.pl \
  --work_dir Results/02_gmes/HT_genome_1st_run \  # output folder
  --min_contig 3000 & # same as the previous threshold
 ```
+Teh output file is under ./Results/02_gmes/HT_genome_1st_run/genemark.gtf   
 
 To convert the gtf files to gff, gffParse.pl is used
 ```bash
-mkdir Results/03_gffParse
+cat Results/02_gmes/HT_genome_1st_run/genemark.gtf | sed "s/ GC=.*\tGeneMark.hmm/\tGeneMark.hmm/" > Results/02_gmes/Ht2.gff
 gffParse.pl \
- -i Results/01_clean/Ht.genome \  # input fasta
- -g Results/02_gmes/HT_genome_1st_run \  # input annotation file
- -b HT \  # basename for files
- -d Results/03_gffParse \  # output directory
- -p \  # also input amino acid files
- -c  #  adjusts genes if by changing readframe, STOP codons disappear
+    -g Results/02_gmes/Ht2.gff \
+    -i Results/01_clean/Ht.genome \
+    -b HT \
+    -d Results/03_gffParse \
+    -p   \
+    -c
+```
+gffParse.pl \
+    -g Results/02_gmes/Ht2.gff \
+-i Results/01_clean/Ht.genome # \
+    -b HT \  # basename for files
+    -d Results/03_gffParse \  # output directory
+    -p \ # also outputs amino acid files
+    -c  #  adjusts genes if by changing readframe, STOP codons disappear
+
+
+Run BLASTP
+```bash
+mkdir Results/04_blastp
+nohup blastp \
+ -query Results/03_gffParse/HT.faa \
+ -db SwissProt -evalue 1e-10 `#database and evalue cut-off` \
+ -out Results/04_blastp/Ht2.blastp -num_descriptions 10 \
+ -num_alignments 5 -num_threads 4 &
+jobs
 ```
