@@ -119,7 +119,7 @@ gffParse.pl \
 ```
 gffParse.pl \
     -g Results/02_gmes/Ht2.gff \
--i Results/01_clean/Ht.genome # \
+    -i Results/01_clean/Ht.genome # \
     -b HT \  # basename for files
     -d Results/03_gffParse \  # output directory
     -p \ # also outputs amino acid files
@@ -135,4 +135,11 @@ nohup blastp \
  -out Results/04_blastp/Ht2.blastp -num_descriptions 10 \
  -num_alignments 5 -num_threads 4 &
 jobs
+```
+
+
+To parse the results
+```bash
+python3 Scripts/blastParser.py Results/04_blastp/Ht2.blastp -o Results/04_blastp/Ht2_parsed.txt
+
 ```
