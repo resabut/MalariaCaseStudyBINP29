@@ -137,9 +137,42 @@ nohup blastp \
 jobs
 ```
 
-
-To parse the results
+link the database files
 ```bash
-python3 Scripts/blastParser.py Results/04_blastp/Ht2.blastp -o Results/04_blastp/Ht2_parsed.txt
+ln -s /resources/binp29/Data/malaria/taxonomy.dat Data/Taxonomy/taxonomy.dat
+ln -s /resources/binp29/Data/malaria/uniprot_sprot.dat Data/Taxonomy/uniprot_sprot.dat
+```
 
+Use the blast taxonomy parser provided
+```bash
+python Scripts/datParser.py Results/04_blastp/Ht2.blastp Results/03_gffParse/HT.faa Data/Taxonomy/taxonomy.dat \
+    Data/Taxonomy/uniprot_sprot.dat > Results/04_blastp/bird_scaffolds.txt
+```
+```bash
+mkdir Results/05_filter
+```
+To remove the bird contigs
+```bash
+bird_contig=false
+touch Results/05_filter/Ht_filtered.genome
+while read line; do
+  while read contig; do
+    if [[ $line =~ $contig ]] ; then
+#      echo "Found bird contig"
+#      echo $line
+      bird_contig=true
+    fi
+  done < Results/04_blastp/bird_scaffolds.txt
+  
+  if $bird_contig; then
+    # it is a bird contig - do not save it
+    read line
+  else
+    # it is a parasite contig
+    echo $line 
+    read line # read genome line
+    echo $line
+  fi
+  bird_contig=false 
+done < Results/01_clean/Ht.genome > Results/05_filter/Ht_filtered.genome
 ```
