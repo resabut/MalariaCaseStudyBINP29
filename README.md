@@ -3,7 +3,7 @@ Author: Joan Escriva Font
 
 # conda
 ```bash
-conda create -n malaria 
+conda create -n malaria proteinortho=6.0.33
 ```
 # git-lfs
 git lfs track *.genome *.gff *.gtf
@@ -176,3 +176,83 @@ while read line; do
   bird_contig=false 
 done < Results/01_clean/Ht.genome > Results/05_filter/Ht_filtered.genome
 ```
+Number of contigs before and after filtering
+```bash
+cat Results/01_clean/Ht.genome | grep -c \>
+cat Results/05_filter/Ht_filtered.genome | grep -c \>
+```
+
+    2343
+    2330
+
+#### make a new gene prediction
+
+```bash
+mkdir Results/06_gmes2
+```
+
+```bash
+nohup gmes_petap.pl \
+ --ES \
+ --sequence Results/05_filter/Ht_filtered.genome \
+ --cores 10 \
+ --work_dir Results/06_gmes2/ \
+ --min_contig 3000 & 
+```
+Now we make gff and parse
+```bash
+cat Results/06_gmes2/genemark.gtf | sed "s/ GC=.*\tGeneMark.hmm/\tGeneMark.hmm/" > Results/06_gmes2/Ht_filtered.gff
+gffParse.pl \
+    -g Results/06_gmes2/Ht_filtered.gff \
+    -i Results/05_filter/Ht_filtered.genome \
+    -b Ht_filter \
+    -d Results/07_gffparse2 \
+    -p   \
+    -c
+```
+## gff parsing for the rest of the predictions
+```bash
+for file in Data/Predictions/*.g*; do
+
+    species=$(basename "${file%.*}")
+    cat $file | sed "s/ GC=.*\tGeneMark.hmm/\tGeneMark.hmm/" > Results/06_gmes2/${species}.gff
+    gffParse.pl \
+        -g $file \
+        -i Data/Genomes/${species}.genome \
+        -b "$species" \
+        -d Results/07_gffparse2/${species} \
+        -p   \
+        -c
+done
+```
+
+## genome information
+
+```bash
+# genome length and GC
+for file in Data/Genomes/*.genome; do
+  echo "$file"
+  cat $file | awk '!/^>/ {tot_len+=length}{gc+=gsub(/[gGcC]/,""); at+=gsub(/[aAtT]/,"");} \
+  END {printf "GC %.2f \t Genome length  %d \n", (gc*100)/(gc+at), (gc+at)}' 
+done
+```
+
+Number of genes
+```bash
+find Results/07_gffparse2/ -name *.fna | 
+  while read line; do
+    echo $(basename "${line%.*}")
+    cat $line | grep -c \>
+  done
+```
+
+## proteinortho
+```bash
+mkdir Results/08_proteinortho
+```
+
+```bash
+nohup proteinortho6.pl -project=prot_orth $(find Results/07_gffparse2/ -name *.faa)  &
+mv prot_orth* Results/08_proteinortho/
+```
+
