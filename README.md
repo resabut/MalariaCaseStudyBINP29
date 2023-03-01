@@ -4,6 +4,7 @@ Author: Joan Escriva Font
 # conda
 ```bash
 conda create -n malaria proteinortho=6.0.33
+conda create -n malaria_busco -c bioconda busco=5.4.5
 ```
 # git-lfs
 git lfs track *.genome *.gff *.gtf
@@ -252,7 +253,37 @@ mkdir Results/08_proteinortho
 ```
 
 ```bash
-nohup proteinortho6.pl -project=prot_orth $(find Results/07_gffparse2/ -name *.faa)  &
+find Results/07_gffparse2/ -name *.faa |
+  while read line; do
+    cat $line | sed s'/\t.*//g' > ${line/.faa/_cleanheader.faa}
+  done
+nohup proteinortho6.pl -project=prot_orth $(find Results/07_gffparse2/ -name *header.faa)  &
 mv prot_orth* Results/08_proteinortho/
 ```
+Shared orthologues
+```bash
+cat Results/08_proteinortho/prot_orth.proteinortho.tsv |
+  awk '($1==8) {count++} END {print "Shared orthologues " count}'
+```
+144
+## busco
+```bash
+mkdir Results/09_busco
+```
+```bash
+conda activate malaria_busco
+find Results/07_gffparse2/ -name *.faa | 
+  while read file; do
+    species=$(basename "${file%.*}")
+    busco -i $file -o Results/09_busco/$species -m prot -l apicomplexa
+done
+```
 
+To check the results
+```bash
+touch Results/09_busco/busco_summary.txt 
+find Results/09_busco -name short_summary.*.txt |
+  while read file; do
+    grep -A9 "Results:" $file >> Results/09_busco/busco_summary.txt
+  done
+```
