@@ -266,6 +266,8 @@ cat Results/08_proteinortho/prot_orth.proteinortho.tsv |
   awk '($1==8) {count++} END {print "Shared orthologues " count}'
 ```
 144
+
+
 ## busco
 ```bash
 mkdir Results/09_busco
@@ -286,4 +288,7 @@ find Results/09_busco -name short_summary.*.txt |
   while read file; do
     grep -A9 "Results:" $file >> Results/09_busco/busco_summary.txt
   done
+
+
+
 ```
