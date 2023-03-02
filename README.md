@@ -288,7 +288,39 @@ find Results/09_busco -name short_summary.*.txt |
   while read file; do
     grep -A9 "Results:" $file >> Results/09_busco/busco_summary.txt
   done
+```
 
 
+# trees
+## install
+```bash
+conda install -c bioconda clustalo=1.2.* raxml=8.12.* phylip=3.697
+```
+### clustalo
+```bash
+mkdir Results/10_trees
+```
+```bash
+for file in Results/09_busco/fasta_genes/*.faa; do
+  filename=$(basename "$file")
+  clustalo -i $file -o Results/10_trees/${filename/.faa/_aligned.faa} --force --threads 10 
+  raxmlHPC -m PROTGAMMABLOSUM62 -s Results/10_trees/${filename/.faa/_aligned.faa} -w /home/inf-38-2022/BINP29/malaria/MalariaCaseStudyBINP29/Results/10_trees -n ${filename/.faa/.tre} -p 12345
+done
+phylip consense <(cat Results/10_trees/*.tre) > Results/10_trees/consensus.tre
+```
+```bash
+mkdir Results/12_consensus
+cat Results/10_trees/*.tre > Results/12_consensus/concat_trees.tre 
+phylip consense < Results/12_consensus/concat_trees.tre Results/12_consensus/consensus4.tre
+```
 
+consense < /home/inf-38-2022/BINP29/malaria/MalariaCaseStudyBINP29/Results/10_trees/*.tre > /home/inf-38-2022/BINP29/malaria/MalariaCaseStudyBINP29/Results/10_trees/consensus3.tre
+
+### concatenate all alignments and one treee
+With MEGAX
+```bash
+mkdir Results/11_supertree
+```
+```bash
+raxmlHPC -m PROTGAMMABLOSUM62 -s Results/11_supertree/sequence_data.fas -w /home/inf-38-2022/BINP29/malaria/MalariaCaseStudyBINP29/Results/11_supertree -n supertree.tre -p 12345
 ```
