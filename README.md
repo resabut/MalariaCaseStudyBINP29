@@ -310,11 +310,10 @@ phylip consense <(cat Results/10_trees/*.tre) > Results/10_trees/consensus.tre
 ```
 ```bash
 mkdir Results/12_consensus
-cat Results/10_trees/*.tre > Results/12_consensus/concat_trees.tre 
-phylip consense < Results/12_consensus/concat_trees.tre Results/12_consensus/consensus4.tre
+cat Results/10_trees/*bestTree*.tre > Results/12_consensus/concat_trees.tre 
+phylip consense < Results/12_consensus/concat_trees.tre Results/12_consensus/consensus_phylip.tre
 ```
 
-consense < /home/inf-38-2022/BINP29/malaria/MalariaCaseStudyBINP29/Results/10_trees/*.tre > /home/inf-38-2022/BINP29/malaria/MalariaCaseStudyBINP29/Results/10_trees/consensus3.tre
 
 ### concatenate all alignments and one treee
 With MEGAX
